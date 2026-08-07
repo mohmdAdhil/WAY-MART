@@ -43,16 +43,42 @@ export function CartProvider({
   );
 
   if (existingItem) {
-    setCart(
-      cart.map((product) =>
-        product.name === item.name
-          ? {
-              ...product,
-              quantity: product.quantity + 1,
-            }
-          : product
-      )
-    );
+  const updatedCart = cart.map((product) =>
+    product.name === item.name
+      ? {
+          ...product,
+          quantity: product.quantity + 1,
+        }
+      : product
+  );
+
+  setCart(updatedCart);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const updatedProduct = updatedCart.find(
+    (product) => product.name === item.name
+  );
+
+  if (!updatedProduct) return;
+
+  const { error } = await supabase
+    .from("cart")
+    .update({
+      quantity: updatedProduct.quantity,
+    })
+    .eq("user_id", user.id)
+    .eq("product_name", item.name);
+
+  if (error) {
+    console.error(error);
+    alert(error.message);
+  }
+
   } else {
     setCart([
       ...cart,
@@ -113,9 +139,62 @@ if (error) {
   }
 };
 
-  const decreaseQuantity = (name: string) => {};
+  const decreaseQuantity = async (name: string) => {
+  const product = cart.find((item) => item.name === name);
 
-  const removeFromCart = (name: string) => {};
+  if (!product) return;
+
+  if (product.quantity === 1) {
+    removeFromCart(name);
+    return;
+  }
+
+  const updatedCart = cart.map((item) =>
+    item.name === name
+      ? { ...item, quantity: item.quantity - 1 }
+      : item
+  );
+
+  setCart(updatedCart);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("cart")
+    .update({ quantity: product.quantity - 1 })
+    .eq("user_id", user.id)
+    .eq("product_name", name);
+
+  if (error) {
+    console.error(error);
+    alert(error.message);
+  }
+};
+
+  const removeFromCart = async (name: string) => {
+  setCart(cart.filter((item) => item.name !== name));
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("cart")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("product_name", name);
+
+  if (error) {
+    console.error(error);
+    alert(error.message);
+  }
+};
 
   return (
     <CartContext.Provider
