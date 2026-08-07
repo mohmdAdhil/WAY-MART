@@ -29,7 +29,7 @@ async function handleLogout() {
 }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       {/* Header */}
      <header className="sticky top-0 z-50 bg-white shadow-md p-4 flex items-center justify-between">
   <div>
@@ -72,42 +72,76 @@ async function handleLogout() {
 </header>
     
 
-      {/* Hero */}
-      <section className="text-center py-16 px-6">
-        <h2 className="text-5xl font-bold">
-          Groceries Delivered in Minutes
-        </h2>
-
-        <p className="text-gray-600 mt-4 text-lg">
-          Fresh fruits, vegetables, snacks and daily essentials.
-        </p>
-        
-
-        <button className="mt-8 bg-green-600 text-white px-6 py-3 rounded-xl text-lg">
-          Shop Now
-        </button>
-      </section>
-      <section className="p-6">
-  <div className="bg-green-600 text-white rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between">
+     {/* Premium Hero */}
+<section className="p-6">
+  <div className="rounded-3xl bg-gradient-to-r from-green-600 to-emerald-500 text-white p-10 flex flex-col md:flex-row items-center justify-between shadow-xl">
     <div>
-      <h2 className="text-4xl font-bold">
-        Fresh Groceries Delivered in 10 Minutes 🚀
+      <h2 className="text-5xl font-extrabold leading-tight">
+        Fresh Groceries <br />
+        Delivered in Minutes 🚀
       </h2>
 
-      <p className="mt-3 text-lg">
-        Up to 30% OFF on Fruits, Vegetables & Daily Essentials.
+      <p className="mt-4 text-lg text-green-100">
+        Fruits, Vegetables, Dairy, Snacks & Daily Essentials at your doorstep.
       </p>
 
-      <button className="mt-5 bg-white text-green-600 px-6 py-3 rounded-xl font-bold">
-        Shop Now
-      </button>
+      <div className="mt-6 flex gap-4">
+        <button className="bg-white text-green-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-100">
+          🛒 Shop Now
+        </button>
+
+       <Link
+  href="/todays-deals"
+  className="border border-white px-6 py-3 rounded-xl font-bold hover:bg-white hover:text-green-700 transition"
+>
+  🔥 Today's Deals
+</Link>
+      </div>
     </div>
 
-    <div className="text-7xl mt-6 md:mt-0">
+    <div className="text-[120px] mt-8 md:mt-0">
       🛒🥦🍎🥛
     </div>
   </div>
 </section>
+
+{/* Today's Deals Banner */}
+<section className="p-6">
+  <Link href="/todays-deals">
+    <div className="rounded-3xl bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white p-8 shadow-xl hover:scale-[1.02] transition cursor-pointer">
+
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wider">
+            🔥 Limited Time Offer
+          </p>
+
+          <h2 className="text-4xl font-extrabold mt-2">
+            Up to 40% OFF
+          </h2>
+
+          <p className="mt-3 text-lg text-orange-100">
+            Fresh Fruits, Vegetables & Daily Essentials
+          </p>
+
+          <div className="mt-6 inline-block bg-white text-red-600 px-6 py-3 rounded-xl font-bold">
+            Shop Deals →
+          </div>
+
+          <p className="mt-4 text-sm text-orange-100">
+            ⏳ Ends Tonight
+          </p>
+        </div>
+
+        <div className="text-8xl hidden md:block">
+          🍎🥦🥛🛒
+        </div>
+      </div>
+
+    </div>
+  </Link>
+</section>
+      
 
      {/* Categories */}
 <section className="p-6">
