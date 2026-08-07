@@ -1,10 +1,101 @@
 "use client";
+import { useCart } from "@/context/CartContext";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 import { useState } from "react";
 import Link from "next/link";
 
 export default function CheckoutPage() {
   const [payment, setPayment] = useState("cod");
+  const [address, setAddress] = useState("");
+  const [name, setName] = useState("");
+const [phone, setPhone] = useState("");
+  const { cart, clearCart } = useCart();
+const router = useRouter();
+
+const totalPrice = cart.reduce(
+  (sum, item) => sum + item.price * item.quantity,
+  0
+);
+const placeOrder = async () => {
+  if (!name.trim()) {
+  alert("Please enter your full name.");
+  return;
+}
+
+if (!phone.trim()) {
+  alert("Please enter your phone number.");
+  return;
+}
+
+if (!/^\d{10}$/.test(phone)) {
+  alert("Please enter a valid 10-digit phone number.");
+  return;
+}
+
+if (!address.trim()) {
+  alert("Please enter your delivery address.");
+  return;
+}
+
+if (cart.length === 0) {
+  alert("Your cart is empty.");
+  return;
+}
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
+
+ const { data, error } = await supabase
+  .from("orders")
+  .insert({
+  user_id: user.id,
+  customer_name: name,
+  phone: phone,
+  total_price: totalPrice,
+  status: "Pending",
+  address,
+})
+  .select()
+  .single();
+
+  if (error) {
+    console.error(error);
+    alert(error.message);
+    return;
+  }
+  const items = cart.map((item) => ({
+  order_id: data.id,
+  product_name: item.name,
+  price: item.price,
+  quantity: item.quantity,
+  image: item.image,
+}));
+
+const { error: itemsError } = await supabase
+  .from("order_items")
+  .insert(items);
+
+if (itemsError) {
+  console.error(itemsError);
+  alert(itemsError.message);
+  return;
+}
+await supabase
+  .from("cart")
+  .delete()
+  .eq("user_id", user.id);
+
+clearCart();
+
+  router.push("/order-success");
+};
 
   return (
     <main className="min-h-screen bg-gray-100 p-6">
@@ -12,22 +103,28 @@ export default function CheckoutPage() {
         <h1 className="text-3xl font-bold mb-6">🛍️ Checkout</h1>
 
         <input
-          type="text"
-          placeholder="Full Name"
-          className="w-full border rounded-lg p-3 mb-4"
-        />
+  type="text"
+  placeholder="Full Name"
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+  className="w-full border rounded-lg p-3 mb-4"
+/>
 
         <input
-          type="tel"
-          placeholder="Phone Number"
-          className="w-full border rounded-lg p-3 mb-4"
-        />
+  type="tel"
+  placeholder="Phone Number"
+  value={phone}
+  onChange={(e) => setPhone(e.target.value)}
+  className="w-full border rounded-lg p-3 mb-4"
+/>
 
         <textarea
-          placeholder="Delivery Address"
-          rows={4}
-          className="w-full border rounded-lg p-3 mb-4"
-        />
+  placeholder="Delivery Address"
+  rows={4}
+  value={address}
+  onChange={(e) => setAddress(e.target.value)}
+  className="w-full border rounded-lg p-3 mb-4"
+/>
 
         <h2 className="text-xl font-bold mb-3">Payment Method</h2>
 
@@ -49,11 +146,12 @@ export default function CheckoutPage() {
           Online Payment
         </label>
 
-        <Link href="/order-success">
-          <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold">
-            Place Order
-          </button>
-        </Link>
+       <button
+  onClick={placeOrder}
+  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold"
+>
+  Place Order
+</button>
       </div>
     </main>
   );
