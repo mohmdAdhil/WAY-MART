@@ -82,7 +82,36 @@ if (error) {
   }
 };
 
-  const increaseQuantity = (name: string) => {};
+ const increaseQuantity = async (name: string) => {
+  const updatedCart = cart.map((product) =>
+    product.name === name
+      ? { ...product, quantity: product.quantity + 1 }
+      : product
+  );
+
+  setCart(updatedCart);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const product = updatedCart.find((item) => item.name === name);
+
+  if (!product) return;
+
+  const { error } = await supabase
+    .from("cart")
+    .update({ quantity: product.quantity })
+    .eq("user_id", user.id)
+    .eq("product_name", name);
+
+  if (error) {
+    console.error(error);
+    alert(error.message);
+  }
+};
 
   const decreaseQuantity = (name: string) => {};
 
