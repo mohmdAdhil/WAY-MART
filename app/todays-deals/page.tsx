@@ -1,12 +1,36 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { products } from "@/data/products";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 export default function TodaysDealsPage() {
+  const { addToCart } = useCart();
 
-    const { addToCart } = useCart();
+  const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function getProducts() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (error) {
+        console.error("Error loading products:", error);
+        return;
+      }
+
+      setSupabaseProducts(data || []);
+    }
+
+    getProducts();
+  }, []);
+
+  const displayProducts =
+    supabaseProducts.length > 0 ? supabaseProducts : products;
   return (
     <main className="min-h-screen bg-orange-50 p-6">
      {/* Mega Sale Banner */}
@@ -60,7 +84,7 @@ export default function TodaysDealsPage() {
 </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-  {products
+  {displayProducts
   .filter((product) => product.discount > 0)
   .map((product) => (
     <div
