@@ -8,6 +8,8 @@ import ProductCard from "@/components/ProductCard";
 export default function Home() {
   const { cart, addToCart } = useCart();
   const [search, setSearch] = useState("");
+  const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
+  
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [userName, setUserName] = useState("");
 const [userEmail, setUserEmail] = useState("");
@@ -25,10 +27,31 @@ const [userEmail, setUserEmail] = useState("");
 
   getUser();
 }, []);
+
+useEffect(() => {
+  async function getProducts() {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("id", { ascending: true });
+
+    if (error) {
+      console.error("Error loading products:", error);
+      return;
+    }
+
+    setSupabaseProducts(data || []);
+  }
+
+  getProducts();
+}, []);
+
 async function handleLogout() {
   await supabase.auth.signOut();
   window.location.href = "/login";
 }
+const displayProducts =
+  supabaseProducts.length > 0 ? supabaseProducts : products;
 
   return (
     <main className="min-h-screen">
@@ -201,7 +224,7 @@ async function handleLogout() {
   <h3 className="text-2xl font-bold mb-6">Popular Products</h3>
 
   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-    {products
+    {displayProducts
   .filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()
