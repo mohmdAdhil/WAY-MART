@@ -18,6 +18,10 @@ const totalPrice = cart.reduce(
   (sum, item) => sum + item.price * item.quantity,
   0
 );
+const deliveryFee = totalPrice >= 349 ? 0 : 30;
+
+const finalTotal = totalPrice + deliveryFee;
+
 const placeOrder = async () => {
   if (!name.trim()) {
   alert("Please enter your full name.");
@@ -52,13 +56,19 @@ if (cart.length === 0) {
     return;
   }
 
+
+
  const { data, error } = await supabase
   .from("orders")
-  .insert({
+ .insert({
+
   user_id: user.id,
   customer_name: name,
   phone: phone,
-  total_price: totalPrice,
+  subtotal: totalPrice,
+  delivery_fee: deliveryFee,
+  total_price: finalTotal,
+  payment_method: payment,
   status: "Pending",
   address,
 })
@@ -125,6 +135,27 @@ clearCart();
   onChange={(e) => setAddress(e.target.value)}
   className="w-full border rounded-lg p-3 mb-4"
 />
+
+<div className="bg-gray-50 rounded-xl p-4 mb-6">
+  <div className="flex justify-between">
+    <span>Subtotal</span>
+    <span>₹{totalPrice}</span>
+  </div>
+
+  <div className="flex justify-between mt-2">
+    <span>Delivery</span>
+    <span>
+      {deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}
+    </span>
+  </div>
+
+  <div className="border-t mt-3 pt-3 flex justify-between text-xl font-bold">
+    <span>Total</span>
+    <span>₹{finalTotal}</span>
+  </div>
+</div>
+
+
 
         <h2 className="text-xl font-bold mb-3">Payment Method</h2>
 
