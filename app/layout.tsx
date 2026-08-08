@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 via-white to-green-50">
+     <body className="min-h-screen flex flex-col bg-gradient-to-b from-orange-100 via-orange-50 to-green-100">
   <CartProvider>{children}</CartProvider>
 </body>
     </html>
