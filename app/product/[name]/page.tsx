@@ -1,21 +1,72 @@
+"use client";
 
-import { products } from "@/data/products";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useCart } from "@/context/CartContext";
+import { supabase } from "@/lib/supabase";
 
-type Props = {
-  params: Promise<{
-    name: string;
-  }>;
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+  stock: number;
+  discount: number;
 };
 
-export default async function ProductPage({ params }: Props) {
-  const { name } = await params;
+export default function ProductPage() {
+  const params = useParams();
+  const { addToCart } = useCart();
 
-  const product = products.find(
-    (item) => item.name.toLowerCase() === name.toLowerCase()
-  );
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const productName = Array.isArray(params.name)
+  ? params.name[0]
+  : params.name || "";
+
+  useEffect(() => {
+    async function getProduct() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .ilike("name", productName)
+        .single();
+
+      if (error) {
+        console.error("Error loading product:", error);
+        setProduct(null);
+      } else {
+        setProduct(data);
+      }
+
+      setLoading(false);
+    }
+
+    if (productName) {
+      getProduct();
+    }
+  }, [productName]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-lg font-semibold">
+          Loading product...
+        </p>
+      </main>
+    );
+  }
 
   if (!product) {
-    return <h1>Product not found</h1>;
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <h1 className="text-2xl font-bold">
+          Product not found
+        </h1>
+      </main>
+    );
   }
 
   return (
@@ -34,6 +85,12 @@ export default async function ProductPage({ params }: Props) {
         ₹{product.price}
       </p>
 
+      {product.discount > 0 && (
+        <span className="inline-block mt-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm">
+          🔥 {product.discount}% OFF
+        </span>
+      )}
+
       <p className="text-yellow-500 mt-2">
         ⭐ 4.8 (250+ reviews)
       </p>
@@ -42,8 +99,18 @@ export default async function ProductPage({ params }: Props) {
         Fresh quality {product.name} delivered to your doorstep in 10 minutes.
       </p>
 
-      <button className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold">
-        Add to Cart
+      <button
+        onClick={() =>
+          addToCart({
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            quantity: 1,
+          })
+        }
+        className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold"
+      >
+        🛒 Add to Cart
       </button>
     </main>
   );
