@@ -10,15 +10,17 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [userName, setUserName] = useState("");
+const [userEmail, setUserEmail] = useState("");
  useEffect(() => {
   async function getUser() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (user) {
-      setUserName((user.user_metadata?.full_name as string) || "User");
-    }
+   if (user) {
+  setUserName((user.user_metadata?.full_name as string) || "User");
+  setUserEmail(user.email || "");
+}
   }
 
   getUser();
@@ -40,10 +42,19 @@ async function handleLogout() {
   </p>
 
   {userName && (
-  <p className="text-sm text-green-600 font-medium mt-1">
-    👋 Hi, {userName}
-  </p>
+  <div>
+    <p className="text-sm text-green-600 font-medium mt-1">
+      👋 Hi, {userName}
+    </p>
+
+    {userEmail && (
+      <p className="text-xs text-gray-500 mt-1">
+        📧 {userEmail}
+      </p>
+    )}
+  </div>
 )}
+
   </div>
   <input
   type="text"
