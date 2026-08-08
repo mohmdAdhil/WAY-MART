@@ -14,6 +14,7 @@ export default function EditProductPage() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("Fruits");
   const [image, setImage] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [stock, setStock] = useState("");
   const [discount, setDiscount] = useState("0");
 
@@ -48,35 +49,62 @@ export default function EditProductPage() {
   }, [id, router]);
 
   async function handleUpdateProduct() {
-    if (!name || !price || !image || !stock) {
-      alert("Please fill all required fields.");
-      return;
-    }
+  if (!name || !price || !stock) {
+    alert("Please fill all required fields.");
+    return;
+  }
 
-    setSaving(true);
+  setSaving(true);
 
-    const { error } = await supabase
-      .from("products")
-      .update({
-        name,
-        price: Number(price),
-        category,
-        image,
-        stock: Number(stock),
-        discount: Number(discount),
-      })
-      .eq("id", id);
+  let imageUrl = image;
 
-    if (error) {
-      alert(error.message);
+  if (imageFile) {
+    const fileExt = imageFile.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(fileName, imageFile);
+
+    if (uploadError) {
+      alert(uploadError.message);
       setSaving(false);
       return;
     }
 
-    alert("Product updated successfully! 🎉");
+    const {
+      data: { publicUrl },
+    } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(fileName);
 
-    router.push("/admin/products");
+    imageUrl = publicUrl;
   }
+
+  const { error } = await supabase
+    .from("products")
+    .update({
+      name,
+      price: Number(price),
+      category,
+      image: imageUrl,
+      stock: Number(stock),
+      discount: Number(discount),
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert(error.message);
+    setSaving(false);
+    return;
+  }
+
+  alert("Product updated successfully! 🎉");
+
+  router.push("/admin/products");
+}
+
+
 
   if (loading) {
     return (
@@ -146,17 +174,33 @@ export default function EditProductPage() {
           </div>
 
           <div>
-            <label className="font-semibold">
-              Image URL
-            </label>
+  <label className="font-semibold">
+    Product Image
+  </label>
 
-            <input
-              type="text"
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              className="w-full border rounded-xl p-3 mt-2"
-            />
-          </div>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      setImageFile(e.target.files?.[0] || null);
+    }}
+    className="w-full border rounded-xl p-3 mt-2"
+  />
+
+  {image && (
+    <img
+      src={image}
+      alt={name}
+      className="w-32 h-32 object-cover rounded-xl mt-3"
+    />
+  )}
+
+  {imageFile && (
+    <p className="text-sm text-green-600 mt-2">
+      📸 New image: {imageFile.name}
+    </p>
+  )}
+</div>
 
           <div>
             <label className="font-semibold">

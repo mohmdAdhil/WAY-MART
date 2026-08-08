@@ -11,37 +11,57 @@ export default function AddProductPage() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("Fruits");
   const [image, setImage] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [stock, setStock] = useState("");
   const [discount, setDiscount] = useState("0");
   const [saving, setSaving] = useState(false);
 
   async function handleAddProduct() {
-    if (!name || !price || !image || !stock) {
-      alert("Please fill all required fields.");
-      return;
-    }
-
-    setSaving(true);
-
-    const { error } = await supabase.from("products").insert({
-      name,
-      price: Number(price),
-      category,
-      image,
-      stock: Number(stock),
-      discount: Number(discount),
-    });
-
-    if (error) {
-      alert(error.message);
-      setSaving(false);
-      return;
-    }
-
-    alert("Product added successfully! 🎉");
-
-    router.push("/admin/products");
+  if (!name || !price || !imageFile || !stock) {
+    alert("Please fill all required fields.");
+    return;
   }
+
+  setSaving(true);
+
+  const fileExt = imageFile.name.split(".").pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("product-images")
+    .upload(fileName, imageFile);
+
+  if (uploadError) {
+    alert(uploadError.message);
+    setSaving(false);
+    return;
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage
+    .from("product-images")
+    .getPublicUrl(fileName);
+
+  const { error } = await supabase.from("products").insert({
+    name,
+    price: Number(price),
+    category,
+    image: publicUrl,
+    stock: Number(stock),
+    discount: Number(discount),
+  });
+
+  if (error) {
+    alert(error.message);
+    setSaving(false);
+    return;
+  }
+
+  alert("Product added successfully! 🎉");
+
+  router.push("/admin/products");
+}
 
   return (
     <main className="min-h-screen p-6">
@@ -105,24 +125,27 @@ export default function AddProductPage() {
             </select>
           </div>
 
-          {/* Image URL */}
-          <div>
-            <label className="font-semibold">
-              Image URL
-            </label>
+         {/* Product Image */}
+<div>
+  <label className="font-semibold">
+    Product Image
+  </label>
 
-            <input
-              type="text"
-              placeholder="/images/mango.jpg"
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              className="w-full border rounded-xl p-3 mt-2"
-            />
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      setImageFile(e.target.files?.[0] || null);
+    }}
+    className="w-full border rounded-xl p-3 mt-2"
+  />
 
-            <p className="text-sm text-gray-500 mt-1">
-              Example: /images/mango.jpg
-            </p>
-          </div>
+  {imageFile && (
+    <p className="text-sm text-green-600 mt-2">
+      📸 {imageFile.name}
+    </p>
+  )}
+</div>
 
           {/* Stock */}
           <div>
