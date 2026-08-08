@@ -110,9 +110,34 @@ export default function AdminProductsPage() {
   ✏️ Edit
 </Link>
 
-                <button className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-semibold">
-                  🗑️ Delete
-                </button>
+                <button
+  onClick={async () => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${product.name}?`
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", product.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Product deleted successfully! 🗑️");
+
+    setProducts((currentProducts) =>
+      currentProducts.filter((item) => item.id !== product.id)
+    );
+  }}
+  className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-semibold"
+>
+  🗑️ Delete
+</button>
 
               </div>
             </div>
