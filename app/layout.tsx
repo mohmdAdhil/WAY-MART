@@ -2,6 +2,7 @@ import { CartProvider } from "@/context/CartContext";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import FreeDeliveryBar from "@/components/FreeDeliveryBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
      <body className="min-h-screen flex flex-col bg-gradient-to-b from-orange-100 via-orange-50 to-green-100">
-  <CartProvider>{children}</CartProvider>
+  <CartProvider>
+  {children}
+
+  <FreeDeliveryBar />
+</CartProvider>
 </body>
     </html>
   );
